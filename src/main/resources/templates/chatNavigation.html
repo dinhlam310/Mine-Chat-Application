@@ -1,0 +1,41 @@
+<link th:href="@{/css/_navigation.css}" rel="stylesheet" />
+
+<!--<div xmlns:th="http://www.thymeleaf.org">-->
+
+<!--  <div class="container">-->
+<!--    <div class="navigation">-->
+<!--&lt;!&ndash;      <div id="senderAccount" th:attr="data-sender-id=${SenderAccount.id}, data-sender-name=${SenderAccount.name}"></div>&ndash;&gt;-->
+<!--      <ul>-->
+<!--        <li th:each="account : ${accountList}">-->
+<!--          <a th:href="@{'/getReceiverAccount/' + ${account.getId()} + '?name=' + ${senderName}}" th:text="${account.getName()}"  th:attr="senderName=${senderName}"></a>-->
+<!--        </li>-->
+<!--        <span th:text="${sendAccount.id}"></span>-->
+<!--      </ul>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</div>-->
+
+<div xmlns:th="http://www.thymeleaf.org">
+    <div class="container">
+        <div class="navigation">
+            <ul>
+                <li th:each="account : ${accountList}">
+                    <a th:href="@{'/getReceiverAccount/' + ${account.getId()} + '?name=' + ${SenderAccount.getName()}}"
+                       th:text="${account.getName()}"></a>
+                </li>
+                <span th:text="${SenderAccount.getId()}"></span>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  var urlParams = new URLSearchParams(window.location.search);
+  var senderName = urlParams.get('senderName');
+  /*]]>*/
+
+  // var senderAccountElement = document.getElementById("senderAccount");
+  // var senderId = senderAccountElement.getAttribute("data-sender-id");
+  // var senderName = senderAccountElement.getAttribute("data-sender-name");
+</script>

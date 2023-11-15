@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link th:href="@{/css/main.css}">
+</head>
+<body>
+<div class="content">
+<h1>Yêu cầu đăng nhập</h1>
+<form id="login-form" th:action="@{'loginAccount'}" th:object="${ACCOUNT}" method="get">
+    <label for="AccountName">Nhập tên người dùng</label>
+    <input type="text" id="AccountName" th:field="*{name}">
+
+    <div class="submit" id="submit">
+        <button id="bth-save" type="submit" >Đăng nhập</button>
+    </div>
+</form>
+</div>
+<script src="/js/main.js"></script>
+</body>
+</html>
