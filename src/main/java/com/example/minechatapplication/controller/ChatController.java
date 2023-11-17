@@ -7,10 +7,12 @@ import com.example.minechatapplication.repository.AccountRepository;
 import com.example.minechatapplication.repository.ChatRepository;
 import com.example.minechatapplication.repository.MessageRepository;
 import com.example.minechatapplication.service.MessageService;
+import com.example.minechatapplication.config.WebSocketConfig;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -18,6 +20,7 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -34,15 +37,39 @@ public class ChatController {
     private MessageRepository messageRepository;
     @Autowired
     private MessageService messageService;
+    @Autowired
+    private WebSocketConfig webSocketConfig;
 
     @ModelAttribute("ACCOUNT")
     public Account initAccount() {
         return new Account();
     }
 
-    @MessageMapping("/chat.sendMessage")
-    @SendTo("/topic/public")
-    public Message sendMessage(@Payload Message message) {
+//    @MessageMapping("/chat.sendMessage")
+//    @SendTo("/topic/public")
+//    public Message sendMessage(@Payload Message message) {
+//        Account sender = accountRepository.findAccountById(message.getAccount().getId());
+//        Message message1 = new Message();
+//        message1.setAccount(sender);
+//        message1.setChat(message.getChat());
+//        message1.setContent(message.getContent());
+//        message1.setTimestamp(Timestamp.from(Instant.now()));
+//        messageService.SaveMessage(message1);
+//        return message;
+//    }
+//
+//    @MessageMapping("/chat.addUser")
+//    @SendTo({"/topic/public"})
+//    public Message addUser(@Payload Message message, SimpMessageHeaderAccessor headerAccessor) {
+//        Message temp = message;
+//        Account account = accountRepository.findAccountById(temp.getAccount().getId());
+//        headerAccessor.getSessionAttributes().put("username", account.getName());
+//        return message;
+//    }
+
+    @MessageMapping("/chat.sendMessage/{chatId}")
+    @SendTo({"/topic/chat/{chatId}"})
+    public Message sendMessage(@DestinationVariable String chatId, @Payload Message message) {
         Account sender = accountRepository.findAccountById(message.getAccount().getId());
         Message message1 = new Message();
         message1.setAccount(sender);
@@ -50,15 +77,16 @@ public class ChatController {
         message1.setContent(message.getContent());
         message1.setTimestamp(Timestamp.from(Instant.now()));
         messageService.SaveMessage(message1);
+        webSocketConfig.messagingTemplate().convertAndSend("/topic/chat/" + chatId, message);
         return message;
     }
 
-    @MessageMapping("/chat.addUser")
-    @SendTo("/topic/public")
-    public Message addUser(@Payload Message message, SimpMessageHeaderAccessor headerAccessor) {
-        Message temp = message;
-        Account account = accountRepository.findAccountById(temp.getAccount().getId());
+    @MessageMapping("/chat.addUser/{chatId}")
+    @SendTo("{topic/chat/{chatId}")
+    public Message addUser(@DestinationVariable String chatId, @Payload Message message, SimpMessageHeaderAccessor headerAccessor) {
+        Account account = accountRepository.findAccountById(message.getAccount().getId());
         headerAccessor.getSessionAttributes().put("username", account.getName());
+        webSocketConfig.messagingTemplate().convertAndSend("/topic/chat/" + chatId, message);
         return message;
     }
 

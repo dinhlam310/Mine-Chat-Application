@@ -29,7 +29,7 @@ public class WebSocketEventListener {
                     .timestamp(Timestamp.from(Instant.now()))
                     .account(Account.builder().name(username).build())
                     .build();
-            messagingTemplate.convertAndSend("/topic/public", chatMessage);// gửi tin nhắn thông báo cho các máy khách theo địa chỉ đó
+            messagingTemplate.convertAndSend("/topic/chat/1", chatMessage);// gửi tin nhắn thông báo cho các máy khách theo địa chỉ đó
         }
     }
 

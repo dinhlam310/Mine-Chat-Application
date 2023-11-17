@@ -6,7 +6,7 @@
 
 html,body {
     height: 100%;
-    overflow: hidden;
+    overflow: auto;
 }
 
 body {
@@ -181,7 +181,7 @@ button.accent {
     position: relative;
 }
 
-#chat-page .chat-message i {
+    #chat-page .chat-message i {
     position: absolute;
     width: 42px;
     height: 42px;
