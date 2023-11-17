@@ -1,7 +1,7 @@
 package com.example.minechatapplication.config;
 
-import com.example.minechatapplication.entity.ChatMessage;
-import com.example.minechatapplication.entity.MessageType;
+import com.example.minechatapplication.entity.Account;
+import com.example.minechatapplication.entity.Message;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -9,6 +9,9 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
+
+import java.sql.Timestamp;
+import java.time.Instant;
 
 @Component
 @Slf4j
@@ -22,9 +25,9 @@ public class WebSocketEventListener {
         String username = (String) headerAccessor.getSessionAttributes().get("username"); // lấy tên người dùng trong session attribute
         if (username != null) {
             log.info("user disconnected: {}", username);
-            var chatMessage = ChatMessage.builder()
-                    .type(MessageType.LEAVE)
-                    .sender(username)
+            var chatMessage = Message.builder()
+                    .timestamp(Timestamp.from(Instant.now()))
+                    .account(Account.builder().name(username).build())
                     .build();
             messagingTemplate.convertAndSend("/topic/public", chatMessage);// gửi tin nhắn thông báo cho các máy khách theo địa chỉ đó
         }

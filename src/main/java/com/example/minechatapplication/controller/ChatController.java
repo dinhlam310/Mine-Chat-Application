@@ -2,17 +2,15 @@ package com.example.minechatapplication.controller;
 
 import com.example.minechatapplication.entity.Account;
 import com.example.minechatapplication.entity.Chat;
-import com.example.minechatapplication.entity.ChatMessage;
 import com.example.minechatapplication.entity.Message;
 import com.example.minechatapplication.repository.AccountRepository;
 import com.example.minechatapplication.repository.ChatRepository;
 import com.example.minechatapplication.repository.MessageRepository;
 import com.example.minechatapplication.service.MessageService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -22,7 +20,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 @Controller
@@ -42,16 +40,15 @@ public class ChatController {
         return new Account();
     }
 
-    @MessageMapping("/chat.sendMessage") // Khi máy chủ nhận được một tin nhắn từ người dùng với địa chỉ "/chat.sendMessage", phương thức này sẽ được gọi.
-    @SendTo("/topic/public") // tin nhắn sẽ được gửi lại tới tất cả các khách hàng đang đăng ký theo địa chỉ "/topic/public" bằng cách sử dụng annotation @SendTo.
+    @MessageMapping("/chat.sendMessage")
+    @SendTo("/topic/public")
     public Message sendMessage(@Payload Message message) {
         Account sender = accountRepository.findAccountById(message.getAccount().getId());
-
         Message message1 = new Message();
         message1.setAccount(sender);
         message1.setChat(message.getChat());
         message1.setContent(message.getContent());
-        message1.setTimestamp((Timestamp) new Date());
+        message1.setTimestamp(Timestamp.from(Instant.now()));
         messageService.SaveMessage(message1);
         return message;
     }
@@ -59,30 +56,42 @@ public class ChatController {
     @MessageMapping("/chat.addUser")
     @SendTo("/topic/public")
     public Message addUser(@Payload Message message, SimpMessageHeaderAccessor headerAccessor) {
-
-        Account account = accountRepository.findAccountById(message.getAccount().getId());
+        Message temp = message;
+        Account account = accountRepository.findAccountById(temp.getAccount().getId());
         headerAccessor.getSessionAttributes().put("username", account.getName());
         return message;
+    }
+
+    @GetMapping(value = "/getReceiverAccount/{id}")
+    public String SelectMessage(@PathVariable("id") long id , @RequestParam("name") String name, Model model) {
+        Account receiveAccount = accountRepository.findAccountById(id);
+        Account senderAccount1 = accountRepository.findAccountByName(name);
+        Chat  ChatList1 = chatRepository.findAllByAccount1AndAccount2(receiveAccount , senderAccount1);
+        ObjectMapper objectMapper2 = new ObjectMapper();
+        String ChatList = null;
+        try {
+            ChatList = objectMapper2.writeValueAsString(ChatList1);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        ObjectMapper objectMapper1 = new ObjectMapper();
+        String senderAccount = null;
+        try {
+            senderAccount = objectMapper1.writeValueAsString(senderAccount1);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        model.addAttribute("ChatList", ChatList);
+        model.addAttribute("ChatList1", ChatList1);
+        model.addAttribute("SenderAccount" , senderAccount);
+        model.addAttribute("SenderAccount1" , senderAccount1);
+        return "PrivateChat";
     }
 
     @GetMapping(value = "/")
     public String LoginForm(){
         return "index";
     }
-
-//    @GetMapping(value= "/loginAccount")
-//    public String LoginAccount(@Valid String name, Model model){
-//        Account account = accountRepository.findAccountByName(name);
-//        if(account != null){
-//            List<Account> accountList = accountRepository.findAll();
-//            accountList.remove(account);
-//
-//            model.addAttribute("accountList", accountList);
-//            model.addAttribute("sendAccount", account);
-//            return "loginSuccess";
-//        }
-//        return null;
-//    }
 
     @GetMapping(value= "/loginAccount")
     public String LoginAccount(@Valid String name, Model model){
@@ -99,14 +108,4 @@ public class ChatController {
         return null;
     }
 
-
-    @GetMapping(value = "/getReceiverAccount/{id}")
-    public String SelectMessage(@PathVariable("id") long id , @RequestParam("name") String name, Model model){
-        Account receiveAccount = accountRepository.findAccountById(id);
-        Account senderAccount = accountRepository.findAccountByName(name);
-        Chat  ChatList1 = chatRepository.findAllByAccount1AndAccount2(receiveAccount , senderAccount);
-        model.addAttribute("ChatList", ChatList1);
-        model.addAttribute("SenderAccount" , senderAccount);
-        return "PrivateChat";
-    }
 }

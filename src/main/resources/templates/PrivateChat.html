@@ -8,9 +8,10 @@
 <body>
 
 <div class="content">
+
 <div class="private-chat">
 
-    <div id="username-page" style="padding: 300px 0px">
+    <div id="username-page">
         <div class="username-page-container">
             <h1 class="title">Type your username to enter the Chatroom</h1>
             <form id="usernameForm" name="usernameForm">
@@ -25,7 +26,7 @@
     </div>
 
 
-    <div id="chat-page" class="" style="">
+    <div id="chat-page" class="hidden">
         <div class="chat-container">
             <div class="chat-header">
                 <h2>Spring WebSocket Chat Demo By Dinh Lam</h2>
@@ -35,16 +36,31 @@
             </div>
 <!--            khu vực hiển thị tin nhắn-->
             <ul id="messageArea">
-                    <div id="chatList" th:attr="chat-list=${ChatList.getId()}"></div>
-                <div id="senderAccount" th:attr="data-sender=${SenderAccount}"></div>
 
-                <div th:each="chat : ${ChatList}" data-chat-id= "${chat.getId()}">
+                <div id="chatListMess" th:attr="chat-list-mess=${ChatList}"></div>
+                <div th:each="chat : ${ChatList1}">
                     <div th:each="message : ${chat.getMessages()}">
                         <div th:each="account: ${message.getAccount()}">
+
+                            <div id="chatList" th:attr="chat-list=${chat}"></div>
+                            <div id="chatListId" th:attr="chat-list-id=${chat.getId()}"></div>
+                            <div id="chatListAcc1" th:attr="chat-list-acc1=${chat.getAccount1()}"></div>
+                            <div id="chatListAcc2" th:attr="chat-list-acc2=${chat.getAccount2()}"></div>
+                            <div id="chatListAcc1Id" th:attr="chat-list-acc1=${chat.getAccount1().getId()}"></div>
+                            <div id="chatListAcc2Id" th:attr="chat-list-acc2=${chat.getAccount2().getId()}"></div>
+                            <div id="chatListAcc1Name" th:attr="chat-list-acc1=${chat.getAccount1().getName()}"></div>
+                            <div id="chatListAcc2Name" th:attr="chat-list-acc2=${chat.getAccount2().getName()}"></div>
+<!--                            <div id="chatListMess" th:attr="chat-list-mess=${chat.getMessages()}"></div>-->
+                            <div id="chatListMess1" data-chat-message="${chat.getMessages()}"></div>
                             <p>Nguời gửi : <span th:text="${account.getName()}"></span></p>
+
+                            <h2 th:text="${message.getContent()}"></h2>
+
+                            <div id="timestampContainer">
+                                <p id="timestamp" th:text="${message.getTimestamp()}"></p>
+                            </div>
+
                         </div>
-                        <h2 th:text="${message.getContent()}"></h2>
-                        <p th:text="${message.getTimestamp()}"></p>
                     </div>
                 </div>
             </ul>
@@ -52,6 +68,13 @@
             <form id="messageForm" name="messageForm">
                 <div class="form-group">
                     <div class="input-group clearfix">
+<!--                        <div id="chatList" th:attr="chat-list=${ChatList}"></div>-->
+<!--                        <div id="chatListId" th:attr="chat-list-id=${ChatList.getId()}"></div>-->
+<!--                        <div id="chatListAcc1" th:attr="chat-list-acc1=${ChatList.getAccount1()}"></div>-->
+<!--                        <div id="chatListAcc2" th:attr="chat-list-acc2=${ChatList.getAccount2()}"></div>-->
+<!--                        <div id="chatListMess" th:attr="chat-list-mess=${ChatList.getMessages()}"></div>-->
+                        <div id="senderAccountId" th:attr="data-sender-id=${SenderAccount1.getId()}"></div>
+                        <div id="senderAccountName" th:attr="data-sender-name=${SenderAccount1.getName()}"></div>
                         <input type="text" id="message" placeholder="Type a message..." autocomplete="off" class="form-control"/>
                         <button type="submit" class="primary">Send</button>
                     </div>
@@ -65,6 +88,24 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.4/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <script src="/js/main.js"></script>
-<script></script>
+<script>
+    var currentTime = new Date().getTime();
+
+     var targetTimeElement = document.getElementById("timestamp");
+    var targetTime = new Date(targetTimeElement.textContent).getTime();
+
+    var timeElapsed = currentTime - targetTime;
+
+    var secondsElapsed = Math.floor((timeElapsed / 1000) % 60);
+    var minutesElapsed = Math.floor((timeElapsed / (1000 * 60)) % 60);
+    var hoursElapsed = Math.floor((timeElapsed / (1000 * 60 * 60)) % 24);
+    var daysElapsed = Math.floor(timeElapsed / (1000 * 60 * 60 * 24));
+
+    var newTimestampElement = document.createElement("p");
+    newTimestampElement.textContent = "Đã gửi: "+ daysElapsed + " ngày, "  + hoursElapsed + " giờ, " + minutesElapsed + " phút, " + secondsElapsed + " giây trước";
+
+    var timestampContainer = document.getElementById("timestampContainer");
+    timestampContainer.replaceChild(newTimestampElement, targetTimeElement);
+</script>
 </body>
 </html>

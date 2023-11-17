@@ -1,12 +1,11 @@
 package com.example.minechatapplication.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import lombok.*;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -29,6 +28,7 @@ public class Chat {
     @JoinColumn(name = "account2_id", nullable = false)
     private Account account2;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "chat", fetch = FetchType.LAZY)
     private List<Message> messages;
 
